@@ -54,30 +54,53 @@ check_plain_crypto_js_installed() {
     fi
 }
 
+check_file_hash() {
+    local path="$1" expected="$2"
+    local actual
+    if command -v shasum &>/dev/null; then
+        actual="$(shasum -a 256 "$path" | awk '{print $1}')"
+    elif command -v sha256sum &>/dev/null; then
+        actual="$(sha256sum "$path" | awk '{print $1}')"
+    else
+        return  # can't verify, skip silently
+    fi
+    if [[ "$actual" == "$expected" ]]; then
+        warn "[WARN] $path hash matches known RAT payload — COMPROMISED"
+    else
+        ok
+    fi
+}
+
 check_rat_artifacts() {
     local os
     os="$(uname -s)"
     case "$os" in
         Darwin)
             local path="/Library/Caches/com.apple.act.mond"
+            local hash="92ff08773995ebc8d55ec4b8e1a225d0d1e51efa4ef88b8849d0071230c9645a"
             if [[ -e "$path" ]]; then
                 warn "[WARN] $path exists — COMPROMISED (macOS)"
+                check_file_hash "$path" "$hash"
             else
                 ok
             fi
             ;;
         Linux)
             local path="/tmp/ld.py"
+            local hash="fcb81618bb15edfdedfb638b4c08a2af9cac9ecfa551af135a8402bf980375cf"
             if [[ -e "$path" ]]; then
                 warn "[WARN] $path exists — COMPROMISED (Linux)"
+                check_file_hash "$path" "$hash"
             else
                 ok
             fi
             ;;
         MINGW*|MSYS*|CYGWIN*)
             local path="${PROGRAMDATA:-C:\\ProgramData}\\wt.exe"
+            local hash="617b67a8e1210e4fc87c92d1d1da45a2f311c08d26e89b12307cf583c900d101"
             if [[ -e "$path" ]]; then
                 warn "[WARN] $path exists — COMPROMISED (Windows)"
+                check_file_hash "$path" "$hash"
             else
                 ok
             fi
