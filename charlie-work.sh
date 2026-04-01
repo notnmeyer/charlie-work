@@ -43,17 +43,44 @@ check_plain_crypto_js_installed() {
     fi
 }
 
-check_macos_persistence() {
-    local cache_path="/Library/Caches/com.apple.act.mond"
-    if [[ -e "$cache_path" ]]; then
-        echo "[WARN] $cache_path exists — COMPROMISED"
-        ls -la "$cache_path"
-    else
-        echo "[OK]   $cache_path not found"
-    fi
+check_rat_artifacts() {
+    local os
+    os="$(uname -s)"
+    case "$os" in
+        Darwin)
+            local path="/Library/Caches/com.apple.act.mond"
+            if [[ -e "$path" ]]; then
+                echo "[WARN] $path exists — COMPROMISED (macOS)"
+                ls -la "$path"
+            else
+                echo "[OK]   $path not found"
+            fi
+            ;;
+        Linux)
+            local path="/tmp/ld.py"
+            if [[ -e "$path" ]]; then
+                echo "[WARN] $path exists — COMPROMISED (Linux)"
+                ls -la "$path"
+            else
+                echo "[OK]   $path not found"
+            fi
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            local path="${PROGRAMDATA:-C:\\ProgramData}\\wt.exe"
+            if [[ -e "$path" ]]; then
+                echo "[WARN] $path exists — COMPROMISED (Windows)"
+                ls -la "$path"
+            else
+                echo "[OK]   $path not found"
+            fi
+            ;;
+        *)
+            echo "[SKIP] Unknown OS ($os) — skipping RAT artifact check"
+            ;;
+    esac
 }
 
-echo "=== Axios supply chain attack check ==="
+echo "=== charlie work ==="
 echo "Scanning: $DIR"
 echo ""
 
@@ -75,4 +102,4 @@ if [[ $found -eq 0 ]]; then
     echo "[SKIP] No package-lock.json or yarn.lock files found under $DIR"
 fi
 
-check_macos_persistence
+check_rat_artifacts
