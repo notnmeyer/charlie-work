@@ -43,6 +43,21 @@ check_plain_crypto_js() {
     fi
 }
 
+check_axios_installed() {
+    local lockfile="$1"
+    local pkg
+    pkg="$(dirname "$lockfile")/node_modules/axios/package.json"
+    if [[ ! -f "$pkg" ]]; then
+        ok
+        return
+    fi
+    if grep -A1 '"version"' "$pkg" | grep -qE "1\.14\.1|0\.30\.4"; then
+        warn "[WARN] Malicious axios version (1.14.1 or 0.30.4) installed at $(dirname "$pkg")"
+    else
+        ok
+    fi
+}
+
 check_plain_crypto_js_installed() {
     local lockfile="$1"
     local module
@@ -125,6 +140,7 @@ while IFS= read -r -d '' lockfile; do
         package-lock.json) check_axios_version_npm "$lockfile" ;;
         yarn.lock)         check_axios_version_yarn "$lockfile" ;;
     esac
+    check_axios_installed "$lockfile"
     check_plain_crypto_js "$lockfile"
     check_plain_crypto_js_installed "$lockfile"
 done < <(find "$DIR" \( -name "package-lock.json" -o -name "yarn.lock" \) -print0)
