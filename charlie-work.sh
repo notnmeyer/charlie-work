@@ -149,7 +149,7 @@ if [[ $found -eq 0 ]]; then
     printf "No package-lock.json or yarn.lock files found under %s" "$DIR"
 fi
 
-echo; printf "Checking for RAT artifacts: "
+echo; printf "Checking for RATs: "
 check_rat_artifacts
 
 echo ""
