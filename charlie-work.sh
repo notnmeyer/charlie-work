@@ -16,7 +16,7 @@ check_axios_version_npm() {
 # yarn.lock: version appears as `version "x.y.z"` (v1) or `version: x.y.z` (berry)
 check_axios_version_yarn() {
     local lockfile="$1"
-    if grep -qE 'version:? "?(1\.14\.1|0\.30\.4)"?' "$lockfile"; then
+    if grep -A2 '^"*axios@' "$lockfile" | grep -qE 'version:? "?(1\.14\.1|0\.30\.4)"?'; then
         echo "[WARN] Malicious axios version (1.14.1 or 0.30.4) found in $lockfile"
     else
         echo "[OK]   No malicious axios version in $lockfile"
